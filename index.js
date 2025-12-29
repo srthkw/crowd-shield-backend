@@ -10,27 +10,7 @@ const lostFoundRoutes = require("./routes/lostFoundRoutes");
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5000",
-  "http://localhost:5173",
-  "http://localhost:4173",
-  "https://crowd-shield-v1.vercel.app/"
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (Postman, curl)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS blocked: origin not allowed"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(cors());
 
 app.use(express.json());
 
