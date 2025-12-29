@@ -9,7 +9,17 @@ const lostFoundRoutes = require("./routes/lostFoundRoutes");
 
 dotenv.config();
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173", // Vite
+    "http://localhost:3000", // CRA (just in case)
+    // add deployed frontend URL later
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 app.use(express.json());
 
 connectDB();
