@@ -23,6 +23,35 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+
+// Create Bulk Events
+exports.createEventsBulk = async (req, res) => {
+  try {
+    if (req.user.role !== "organizer" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only organizers can create events" });
+    }
+
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ message: "Expected an array of events" });
+    }
+
+    const eventsWithOwner = req.body.map(event => ({
+      ...event,
+      createdBy: req.user.id
+    }));
+
+    const events = await Event.insertMany(eventsWithOwner);
+
+    res.status(201).json({
+      message: "Events created successfully",
+      count: events.length
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 // Fetch All Events
 exports.getEvents = async (req, res) => {
   try {

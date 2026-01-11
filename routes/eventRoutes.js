@@ -2,6 +2,7 @@ const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
 const {
   createEvent,
+  createEventsBulk,
   getEvents,
   getMyEvents,
   updateEvent,
@@ -12,6 +13,7 @@ const {
 const router = express.Router();
 
 router.post("/", protect(["organizer", "admin"]), createEvent);
+router.post("/bulk", protect(["organizer", "admin"]), createEventsBulk);
 router.get("/", protect(), getEvents);
 router.get("/mine", protect(["organizer", "admin"]), getMyEvents);
 router.get("/:id", protect(), getEventById);
