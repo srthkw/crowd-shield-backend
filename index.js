@@ -1,13 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+dotenv.config();
 const connectDB = require("./config/db");
+const { initCloudinary } = require("./config/cloudinary");
+initCloudinary();
 const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 const lostFoundRoutes = require("./routes/lostFoundRoutes");
 
-dotenv.config();
 const app = express();
 
 app.use(cors());

@@ -1,9 +1,30 @@
 const LostFound = require("../models/LostFound");
+const { cloudinary } = require("../config/cloudinary");
 
 // CREATE lost/found report
 exports.createLostFound = async (req, res) => {
+
+  console.log("BODY:", req.body);
+  console.log("FILE:", req.file);
+  console.log("FILES:", req.files);
+
   try {
     const { eventId, type, itemName, description, location, phone } = req.body;
+
+    let imageUrls = [];
+
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const result = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+          {
+            folder: `crowd-shield/users/${req.user.id}/items`,
+          }
+        );
+
+        imageUrls.push(result.secure_url);
+      }
+    }
 
     const item = await LostFound.create({
       eventId,
@@ -12,7 +33,8 @@ exports.createLostFound = async (req, res) => {
       description,
       location,
       phone,
-      reportedBy: req.user.id
+      imageUrls, // 👈 stored in MongoDB
+      reportedBy: req.user.id,
     });
 
     const oppositeType = type === "lost" ? "found" : "lost";
@@ -21,18 +43,18 @@ exports.createLostFound = async (req, res) => {
       eventId,
       type: oppositeType,
       itemName: { $regex: new RegExp(`^${itemName}$`, "i") },
-      claimed: false
+      claimed: false,
     }).sort({ createdAt: -1 });
 
     return res.status(201).json({
       message:
         matches.length > 0
-          ? (type === "lost"
-              ? "Possible item found!"
-              : "Someone might be looking for this item!")
+          ? type === "lost"
+            ? "Possible item found!"
+            : "Someone might be looking for this item!"
           : "Report created",
       item,
-      match: matches
+      match: matches,
     });
 
   } catch (err) {
@@ -48,7 +70,7 @@ exports.getLostFound = async (req, res) => {
     const records = await LostFound.find({
       eventId,
       claimed: false     // ⬅ only show active items
-    }).sort({ createdAt: -1 });    
+    }).sort({ createdAt: -1 });
 
     res.json(records);
   } catch (err) {
@@ -112,27 +134,6 @@ exports.claimLostFound = async (req, res) => {
     await record.save();
 
     res.json({ message: "Item marked as claimed", item: record });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.matchCheck = async (req, res) => {
-  try {
-    const { eventId, itemId } = req.body;
-    const item = await LostFound.findById(itemId);
-    if (!item) return res.status(404).json({ message: "Item not found" });
-
-    const oppositeType = item.type === "lost" ? "found" : "lost";
-
-    const matches = await LostFound.find({
-      eventId,
-      type: oppositeType,
-      itemName: { $regex: new RegExp(`^${item.itemName}$`, "i") },
-      claimed: false
-    }).sort({ createdAt: -1 });
-
-    res.json({ match: matches });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
