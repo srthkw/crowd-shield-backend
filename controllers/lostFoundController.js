@@ -4,10 +4,6 @@ const { cloudinary } = require("../config/cloudinary");
 // CREATE lost/found report
 exports.createLostFound = async (req, res) => {
 
-  console.log("BODY:", req.body);
-  console.log("FILE:", req.file);
-  console.log("FILES:", req.files);
-
   try {
     const { eventId, type, itemName, description, location, phone } = req.body;
 
