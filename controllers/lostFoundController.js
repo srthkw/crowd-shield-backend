@@ -58,6 +58,27 @@ exports.createLostFound = async (req, res) => {
   }
 };
 
+// GET matched items
+exports.getMatchedItems = async (req, res) => {
+  try {
+    
+    const { itemName, type } = req.body.item;
+
+    const oppositeType = type === "lost" ? "found" : "lost";
+
+    const matches = await LostFound.find({
+      itemName: { $regex: new RegExp(`^${itemName}$`, "i") },
+      type: oppositeType,
+      eventId: req.params.eventId,
+      claimed: false
+    }).sort({ createdAt: -1 });
+
+    res.json(matches);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // GET all lost/found records for event
 exports.getLostFound = async (req, res) => {

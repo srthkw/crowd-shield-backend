@@ -8,12 +8,14 @@ const {
   updateLostFound,
   deleteLostFound,
   claimLostFound,
-  getMyLostFound
+  getMyLostFound,
+  getMatchedItems
 } = require("../controllers/lostFoundController");
 
 const router = express.Router();
 
 router.post("/", protect(), verifyJWT, upload.array("image", 5), createLostFound);
+router.post("/matches/:eventId", protect(), getMatchedItems);
 router.get("/:eventId", protect(), getLostFound);
 router.patch("/:id", protect(), updateLostFound);
 router.delete("/:id", protect(), deleteLostFound);
