@@ -33,25 +33,7 @@ exports.createLostFound = async (req, res) => {
       reportedBy: req.user.id,
     });
 
-    const oppositeType = type === "lost" ? "found" : "lost";
-
-    const matches = await LostFound.find({
-      eventId,
-      type: oppositeType,
-      itemName: { $regex: new RegExp(`^${itemName}$`, "i") },
-      claimed: false,
-    }).sort({ createdAt: -1 });
-
-    return res.status(201).json({
-      message:
-        matches.length > 0
-          ? type === "lost"
-            ? "Possible item found!"
-            : "Someone might be looking for this item!"
-          : "Report created",
-      item,
-      match: matches,
-    });
+    return res.status(201).json(item);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
