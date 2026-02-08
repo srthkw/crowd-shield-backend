@@ -33,7 +33,7 @@ exports.createLostFound = async (req, res) => {
       reportedBy: req.user.id,
     });
 
-    return res.status(201).json(item);
+    return res.status(201).json({item});
 
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -98,9 +98,11 @@ exports.updateEvent = async (req, res) => {
 exports.deleteEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
+    const isCreator = event.createdBy.toString() === req.user.id.toString();
+    const isAdmin = req.user.role === "admin";
 
     if (!event) return res.status(404).json({ message: "Event not found" });
-    if (event.createdBy.toString() !== req.user.id || req.user.role !== "admin") {
+    if (!isCreator && !isAdmin) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
