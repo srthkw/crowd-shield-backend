@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 const lostFoundRoutes = require("./routes/lostFoundRoutes");
+const orgReqsRoutes = require("./routes/orgReqsRoutes");
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use("/lostfound", lostFoundRoutes);
 app.use("/announcements", announcementRoutes);
 
 app.use("/events", eventRoutes);
+
+app.use("/org-reqs", orgReqsRoutes);
 
 app.use("/auth", authRoutes);
 
