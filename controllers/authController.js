@@ -46,3 +46,17 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.updateRole = async (req, res) => {
+  try {
+    const { userId } = req.body.orgReq;
+    console.log("Updating role for user ID:", userId);
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.role = "organizer";
+    await user.save();
+    res.json({ message: "Role updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
