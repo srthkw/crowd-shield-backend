@@ -36,7 +36,6 @@ exports.orgRegister = async (req, res) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      console.log("Updating status for request", id, "to", status);
       const updated = await OrgReqs.findByIdAndUpdate(id, { status }, { new: true });
       if (!updated) return res.status(404).json({ message: "Request not found" });
       res.json({ message: "Status updated", request: updated });
