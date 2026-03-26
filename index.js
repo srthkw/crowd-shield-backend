@@ -13,6 +13,7 @@ const announcementRoutes = require("./routes/announcementRoutes");
 const lostFoundRoutes = require("./routes/lostFoundRoutes");
 const orgReqsRoutes = require("./routes/orgReqsRoutes");
 const emergencyRoutes = require("./routes/emergencyRoutes");
+const { initSocket, getIO } = require("./socket");
 
 const app = express();
 
@@ -24,36 +25,16 @@ connectDB();
 
 const server = http.createServer(app);
 
-// 🔥 Socket.io setup
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
+// initialize socket
+initSocket(server);
 
-// 🔥 Inject io into req
+// inject io into req
 app.use((req, res, next) => {
-  req.io = io;
+  req.io = getIO();
   next();
 });
 
 app.use("/api/emergency", emergencyRoutes);
-
-// 🔌 Socket connection
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
-
-  const userId = socket.handshake.auth.userId;
-
-  if (userId) {
-    socket.join(userId);
-    console.log("Joined room:", userId);
-  }
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
-});
 
 app.use("/lostfound", lostFoundRoutes);
 

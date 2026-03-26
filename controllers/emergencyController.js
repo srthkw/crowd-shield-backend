@@ -36,7 +36,7 @@ exports.startEmergency = async (req, res) => {
     console.log("Emitting to:", organizerId);
     console.log("Payload:", emergency);
 
-    res.json({ message: "Emergency started", emergency });
+    res.json({ message: "Your location has been shared, organizer will be notified. Please wait for the team to reach you. Do not close or refresh this window", emergency });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
