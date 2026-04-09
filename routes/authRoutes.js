@@ -1,10 +1,11 @@
 const express = require("express");
-const { signup, login, updateRole} = require("../controllers/authController");
+const { login, updateRole, signupInit, verifyOtp,} = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/signup", signup);
+router.post("/signup-init", signupInit);
+router.post("/verify-otp", verifyOtp);
 router.post("/login", login);
 router.patch("/makeorg", protect("admin"), updateRole);
 

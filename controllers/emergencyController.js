@@ -29,12 +29,8 @@ exports.startEmergency = async (req, res) => {
     );
 
     const organizerId = event.createdBy.toString();
-
     // 🔥 SOCKET EMIT
     req.io.to(organizerId).emit("emergency-alert", emergency);
-
-    console.log("Emitting to:", organizerId);
-    console.log("Payload:", emergency);
 
     res.json({ message: "Your location has been shared, organizer will be notified. Please wait for the team to reach you. Do not close or refresh this window", emergency });
   } catch (err) {

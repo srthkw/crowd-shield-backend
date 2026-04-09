@@ -34,7 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/emergency", emergencyRoutes);
+app.use("/emergency", emergencyRoutes);
 
 app.use("/lostfound", lostFoundRoutes);
 

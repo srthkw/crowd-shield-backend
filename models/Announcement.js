@@ -5,6 +5,7 @@ const announcementSchema = new mongoose.Schema(
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
     message: { type: String, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    status: { type: String, enum: ["pending", "approved"], default: "pending" },
     role: { type: String },
     active: { type: Boolean, default: true }
   },
