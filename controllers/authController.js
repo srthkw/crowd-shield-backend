@@ -36,7 +36,7 @@ exports.signupInit = async (req, res) => {
       { upsert: true }
     );
 
-    await sendOtpEmail(email, otp);
+    await sendOtpEmail(name, email, otp);
 
     res.status(200).json({ message: "OTP sent to email" });
   } catch (err) {
