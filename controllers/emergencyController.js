@@ -2,9 +2,9 @@ const Emergency = require("../models/Emergency");
 const Event = require("../models/Event");
 const User = require("../models/User");
 
-exports.startEmergency = async (req, res) => {
+exports.toggleEmergency = async (req, res) => {
   try {
-    const { eventId, latitude, longitude } = req.body;
+    const { eventId, latitude, longitude, active } = req.body;
 
     const event = await Event.findById(eventId);
     if (!event) {
@@ -14,7 +14,7 @@ exports.startEmergency = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     const emergency = await Emergency.findOneAndUpdate(
-      { user: user._id, event: eventId, active: true },
+      { user: user._id, event: eventId },
       {
         user: user._id,
         event: eventId,
@@ -23,16 +23,25 @@ exports.startEmergency = async (req, res) => {
         latitude,
         longitude,
         lastUpdated: new Date(),
-        active: true,
+        active: active,
       },
       { upsert: true, new: true }
     );
 
     const organizerId = event.createdBy.toString();
-    // 🔥 SOCKET EMIT
+
     req.io.to(organizerId).emit("emergency-alert", emergency);
 
-    res.json({ message: "Your location has been shared, organizer will be notified. Please wait for the team to reach you. Do not close or refresh this window", emergency });
+    res.json({ message: active ? "Emergency started" : "Emergency stopped", emergency });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deleteEmergency = async (req, res) => {
+  try {
+    await Emergency.findByIdAndDelete(req.params.id);
+    res.json({ message: "Emergency deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

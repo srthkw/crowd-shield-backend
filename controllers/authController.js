@@ -68,6 +68,7 @@ exports.verifyOtp = async (req, res) => {
       email: tempUser.email,
       phone: tempUser.phone,
       password: tempUser.password,
+      eventRegistered: null,
       role: "attendee",
     });
 
@@ -90,12 +91,12 @@ exports.login = async (req, res) => {
     if (!match) return res.status(400).json({ message: "invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role, name: user.name, email: user.email, phone: user.phone },
+      { id: user._id, role: user.role, name: user.name, email: user.email, phone: user.phone, eventRegistered: user.eventRegistered },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.json({ message: "Login successful", token, role: user.role, name: user.name, email: user.email, id: user._id ,phone: user.phone});
+    res.json({ message: "Login successful", token, role: user.role, name: user.name, email: user.email, id: user._id ,phone: user.phone, eventRegistered: user.eventRegistered});
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -114,3 +115,15 @@ exports.updateRole = async (req, res) => {
   }
 };
 
+exports.registerEvent = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.eventRegistered = eventId;
+    await user.save();
+    res.json({ message: "Event registered successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

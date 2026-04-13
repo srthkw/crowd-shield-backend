@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, unique: true, required: true },
     phone: String,
     password: String,
+    eventRegistered: { type: mongoose.Schema.Types.ObjectId, default: null, ref: "Event" },
     role: { type: String, default: "attendee" }
   },
   { timestamps: true }
