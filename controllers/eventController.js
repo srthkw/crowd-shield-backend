@@ -1,4 +1,5 @@
 const Event = require("../models/Event");
+const User = require("../models/User");
 
 // Create Event (Organizer Only)
 exports.createEvent = async (req, res) => {
@@ -124,5 +125,18 @@ exports.getEventById = async (req, res) => {
     res.json(event);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getEventUsers = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const users = await User.find({ eventRegistered: eventId }).select("id name email phone");
+    if (!users.length) {
+      return res.status(404).json({ message: "No users found for this event" });
+    }
+    res.json({ users, message: "Event users fetched successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

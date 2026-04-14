@@ -3,14 +3,14 @@ const Announcement = require("../models/Announcement");
 // CREATE ANNOUNCEMENT
 exports.createAnnouncement = async (req, res) => {
   try {
-    const { eventId, message } = req.body;
+    const { eventId, eventCreator, message } = req.body;
 
     const announcement = await Announcement.create({
       eventId,
       message,
       role: req.user.role,
       createdBy: req.user.id,
-      status: req.user.role === "admin" || req.user.role === "organizer" ? "approved" : "pending"
+      status: req.user.role === "admin" || req.user.id === eventCreator ? "approved" : "pending"
     });
 
     res.status(201).json(announcement);

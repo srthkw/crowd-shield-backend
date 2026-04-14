@@ -7,7 +7,8 @@ const {
   getMyEvents,
   updateEvent,
   deleteEvent,
-  getEventById
+  getEventById,
+  getEventUsers
 } = require("../controllers/eventController");
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.get("/mine", protect(["organizer", "admin"]), getMyEvents);
 router.get("/:id", protect(), getEventById);
 router.patch("/:id", protect(["organizer", "admin"]), updateEvent);
 router.delete("/:id", protect(["organizer","admin"]), deleteEvent);
+router.get("/event-users/:eventId", protect(), getEventUsers);
 
 module.exports = router;

@@ -127,3 +127,14 @@ exports.registerEvent = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+exports.getRoleUsers = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const users = await User.find({ role });
+    res.json({ users, message: "Users fetched successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
