@@ -28,9 +28,15 @@ exports.toggleEmergency = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    const organizerId = event.createdBy.toString();
+    const rooms = [event.createdBy.toString()];
 
-    req.io.to(organizerId).emit("emergency-alert", emergency);
+    if (req.user.role === "admin") {
+      rooms.push(req.user.id.toString());
+    }
+
+    rooms.forEach(room => {
+      req.io.to(room).emit("emergency-alert", emergency);
+    });
 
     res.json({ message: active ? "Emergency started" : "Emergency stopped", emergency });
   } catch (err) {
