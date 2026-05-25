@@ -1,6 +1,48 @@
 const LostFound = require("../models/LostFound");
 const { cloudinary } = require("../config/cloudinary");
 
+const getCloudinaryPublicIdFromUrl = (url) => {
+  if (!url) return null;
+
+  try {
+    const parsedUrl = new URL(url);
+    const uploadIndex = parsedUrl.pathname.indexOf("/upload/");
+    if (uploadIndex === -1) return null;
+
+    const pathAfterUpload = parsedUrl.pathname.slice(uploadIndex + "/upload/".length);
+    const withoutVersion = pathAfterUpload.replace(/^v\d+\//, "");
+    const decodedPath = decodeURIComponent(withoutVersion);
+    const extensionIndex = decodedPath.lastIndexOf(".");
+
+    return extensionIndex === -1 ? decodedPath : decodedPath.slice(0, extensionIndex);
+  } catch (err) {
+    return null;
+  }
+};
+
+const deleteCloudinaryImages = async (record) => {
+  const publicIds = [
+    ...(record.imagePublicIds || []),
+    ...(record.imageUrls || []).map(getCloudinaryPublicIdFromUrl),
+  ].filter(Boolean);
+
+  const uniquePublicIds = [...new Set(publicIds)];
+  if (uniquePublicIds.length === 0) return [];
+
+  const results = await Promise.allSettled(
+    uniquePublicIds.map((publicId) =>
+      cloudinary.uploader.destroy(publicId, {
+        resource_type: "image",
+        invalidate: true,
+      })
+    )
+  );
+
+  return results
+    .map((result, index) => ({ result, publicId: uniquePublicIds[index] }))
+    .filter(({ result }) => result.status === "rejected");
+};
+
 // CREATE lost/found report
 exports.createLostFound = async (req, res) => {
 
@@ -8,6 +50,7 @@ exports.createLostFound = async (req, res) => {
     const { eventId, type, itemName, description, location, phone } = req.body;
 
     let imageUrls = [];
+    let imagePublicIds = [];
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
@@ -19,6 +62,7 @@ exports.createLostFound = async (req, res) => {
         );
 
         imageUrls.push(result.secure_url);
+        imagePublicIds.push(result.public_id);
       }
     }
 
@@ -29,7 +73,8 @@ exports.createLostFound = async (req, res) => {
       description,
       location,
       phone,
-      imageUrls, // 👈 stored in MongoDB
+      imageUrls,
+      imagePublicIds,
       reportedBy: req.user.id,
     });
 
@@ -108,8 +153,23 @@ exports.deleteLostFound = async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
+    const failedDeletions = await deleteCloudinaryImages(record);
+    if (failedDeletions.length > 0) {
+      console.error(
+        "Failed to delete LostFound Cloudinary images:",
+        failedDeletions.map(({ publicId, result }) => ({
+          publicId,
+          reason: result.reason?.message || result.reason,
+        }))
+      );
+
+      return res.status(502).json({
+        message: "Failed to delete item images from Cloudinary. Database record was not deleted.",
+      });
+    }
+
     await record.deleteOne();
-    res.json({ message: "Record deleted" });
+    res.json({ message: "Record and images deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

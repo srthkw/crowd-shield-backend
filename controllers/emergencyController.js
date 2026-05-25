@@ -28,13 +28,9 @@ exports.toggleEmergency = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    const rooms = [event.createdBy.toString()];
+    const rooms = new Set([event.createdBy.toString(), "admins"]);
 
-    if (req.user.role === "admin") {
-      rooms.push(req.user.id.toString());
-    }
-
-    rooms.forEach(room => {
+    rooms.forEach((room) => {
       req.io.to(room).emit("emergency-alert", emergency);
     });
 
@@ -46,7 +42,22 @@ exports.toggleEmergency = async (req, res) => {
 
 exports.deleteEmergency = async (req, res) => {
   try {
+    const emergency = await Emergency.findById(req.params.id).populate("event");
+    if (!emergency) {
+      return res.status(404).json({ message: "Emergency not found" });
+    }
+
+    const eventCreator = emergency.event?.createdBy?.toString();
+    const deletedEmergency = emergency.toObject();
+    deletedEmergency.active = false;
+    deletedEmergency.event = emergency.event?._id || emergency.event;
+
     await Emergency.findByIdAndDelete(req.params.id);
+
+    new Set([eventCreator, "admins"].filter(Boolean)).forEach((room) => {
+      req.io.to(room).emit("emergency-alert", deletedEmergency);
+    });
+
     res.json({ message: "Emergency deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });

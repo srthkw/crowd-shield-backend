@@ -4,7 +4,8 @@ const lostFoundSchema = new mongoose.Schema(
   {
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
     type: { type: String, enum: ["lost", "found"], required: true },
-    imageUrls: { type: [String], default : [] },
+    imageUrls: { type: [String], default: [] },
+    imagePublicIds: { type: [String], default: [] },
     itemName: { type: String, required: true },
     description: { type: String, required: true },
     location: { type: String, required: true },

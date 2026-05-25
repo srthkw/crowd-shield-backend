@@ -1,5 +1,17 @@
 const Announcement = require("../models/Announcement");
 
+const toAnnouncementPayload = (announcement) => ({
+  ...announcement.toObject(),
+  _id: announcement._id.toString(),
+  eventId: announcement.eventId.toString(),
+  createdBy: announcement.createdBy.toString(),
+});
+
+const emitAnnouncementEvent = (req, eventId, eventName, payload) => {
+  if (!req.io || !eventId) return;
+  req.io.to(`announcement:${eventId}`).emit(eventName, payload);
+};
+
 // CREATE ANNOUNCEMENT
 exports.createAnnouncement = async (req, res) => {
   try {
@@ -13,7 +25,14 @@ exports.createAnnouncement = async (req, res) => {
       status: req.user.role === "admin" || req.user.id === eventCreator ? "approved" : "pending"
     });
 
-    res.status(201).json(announcement);
+    emitAnnouncementEvent(
+      req,
+      eventId,
+      announcement.status === "approved" ? "announcement:approved" : "announcement:pending-created",
+      toAnnouncementPayload(announcement)
+    );
+
+    res.status(201).json(toAnnouncementPayload(announcement));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -76,7 +95,9 @@ exports.approveAnnouncement = async (req, res) => {
 
     announcement.status = "approved";
     await announcement.save();
-    res.json({ message: "Announcement approved" });
+
+    emitAnnouncementEvent(req, announcement.eventId, "announcement:approved", toAnnouncementPayload(announcement));
+    res.json({ message: "Announcement approved", announcement: toAnnouncementPayload(announcement) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -96,6 +117,11 @@ exports.deleteAnnouncement = async (req, res) => {
     }
 
     await announcement.deleteOne();
+    emitAnnouncementEvent(req, announcement.eventId, "announcement:deleted", {
+      _id: announcement._id.toString(),
+      eventId: announcement.eventId.toString(),
+      status: announcement.status,
+    });
     res.json({ message: "Announcement deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
