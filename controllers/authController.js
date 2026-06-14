@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const OtpUser = require("../models/OtpUser");
-const sendOtpEmail = require("../utils/sendOtpEmail");
+const {sendOtpEmail} = require("../utils/sendOtpEmail");
 const { cleanupAttendeeEventSession, emitUserReportsChanged, unregisterUserFromEvent } = require("../services/eventPresenceService");
 const { hasActiveEventSession } = require("../services/activeEventSessions");
 
