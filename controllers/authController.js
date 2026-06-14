@@ -6,13 +6,16 @@ const sendOtpEmail = require("../utils/sendOtpEmail");
 const { cleanupAttendeeEventSession, emitUserReportsChanged, unregisterUserFromEvent } = require("../services/eventPresenceService");
 const { hasActiveEventSession } = require("../services/activeEventSessions");
 
+const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
+
 // STEP 1: SEND OTP
 exports.signupInit = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, phone, password } = req.body;
+    const email = normalizeEmail(req.body.email);
     console.log("Signup init data:", req.body);
 
-    if (!name || !email || !phone || !password) {
+    if (!name?.trim() || !email || !phone?.trim() || !password) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -28,14 +31,14 @@ exports.signupInit = async (req, res) => {
     await OtpUser.findOneAndUpdate(
       { email },
       {
-        name,
+        name: name.trim(),
         email,
-        phone,
+        phone: phone.trim(),
         password: hashedPassword,
         otp,
         otpExpiry: Date.now() + 5 * 60 * 1000,
       },
-      { upsert: true }
+      { upsert: true, setDefaultsOnInsert: true }
     );
 
     await sendOtpEmail(name, email, otp);
@@ -49,7 +52,18 @@ exports.signupInit = async (req, res) => {
 // STEP 2: VERIFY OTP
 exports.verifyOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const otp = String(req.body.otp || "").trim();
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      await OtpUser.deleteOne({ email });
+      return res.status(400).json({ message: "User already exists. Please login." });
+    }
 
     const tempUser = await OtpUser.findOne({ email });
 
@@ -57,11 +71,12 @@ exports.verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "No OTP request found" });
     }
 
-    if (tempUser.otp != otp) {
+    if (String(tempUser.otp) !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
     if (Date.now() > tempUser.otpExpiry) {
+      await OtpUser.deleteOne({ email });
       return res.status(400).json({ message: "OTP expired" });
     }
 
