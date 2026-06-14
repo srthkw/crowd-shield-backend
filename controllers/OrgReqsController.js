@@ -1,5 +1,16 @@
 const OrgReqs = require("../models/OrgReqs");
 
+const toOrgReqPayload = (orgReq) => ({
+    ...orgReq.toObject(),
+    _id: orgReq._id.toString(),
+    userId: orgReq.userId.toString(),
+});
+
+const emitOrgReqEvent = (req, eventName, payload) => {
+    if (!req.io) return;
+    req.io.to("admins").emit(eventName, payload);
+};
+
 exports.getOrgReqs = async (req, res) => {
     try {
       const orgReqs = await OrgReqs.find().sort({ createdAt: -1 });
@@ -25,6 +36,7 @@ exports.orgRegister = async (req, res) => {
         userId, name, email, phone
       });
   
+      emitOrgReqEvent(req, "org-request:created", toOrgReqPayload(newOrg));
       res.status(201).json({ message: "Request submitted, please wait for approval" });
       }
     } catch (err) {
@@ -38,6 +50,7 @@ exports.orgRegister = async (req, res) => {
       const { status } = req.body;
       const updated = await OrgReqs.findByIdAndUpdate(id, { status }, { new: true });
       if (!updated) return res.status(404).json({ message: "Request not found" });
+      emitOrgReqEvent(req, "org-request:resolved", toOrgReqPayload(updated));
       res.json({ message: "Status updated", request: updated });
     } catch (err) {
       res.status(500).json({ error: err.message });

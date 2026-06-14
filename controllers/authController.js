@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const OtpUser = require("../models/OtpUser");
 const sendOtpEmail = require("../utils/sendOtpEmail");
+const { cleanupAttendeeEventSession, emitUserReportsChanged, unregisterUserFromEvent } = require("../services/eventPresenceService");
+const { hasActiveEventSession } = require("../services/activeEventSessions");
 
 // STEP 1: SEND OTP
 exports.signupInit = async (req, res) => {
@@ -122,7 +124,32 @@ exports.registerEvent = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     user.eventRegistered = eventId;
     await user.save();
+    emitUserReportsChanged(req.io, eventId);
     res.json({ message: "Event registered successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.unregisterEvent = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    await unregisterUserFromEvent(req.io, req.user.id, eventId);
+    res.json({ message: "Event unregistered successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.cleanupEventSession = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    if (hasActiveEventSession(req.user.id, eventId)) {
+      return res.json({ message: "Event session is still active in another tab" });
+    }
+
+    await cleanupAttendeeEventSession(req.io, req.user.id, eventId);
+    res.json({ message: "Event session cleaned up successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
