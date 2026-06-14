@@ -6,19 +6,17 @@ const sendOtpEmail = async (name, email, otp) => {
   }
 
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: "smtp-relay.brevo.com",
     port: 587,
     secure: false,
-    family: 4,
-    service: "gmail",
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // app password
+      user: process.env.BREVO_USER,
+      pass: process.env.BREVO_PASS,
     },
   });
 
   await transporter.verify();
-  console.log("SMTP verified");
+  console.log("Brevo SMTP connected");
 
   await transporter.sendMail({
     from: `"Crowd-Shield" <${process.env.EMAIL_USER}>`,
