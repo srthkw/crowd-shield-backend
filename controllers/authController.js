@@ -41,11 +41,13 @@ exports.signupInit = async (req, res) => {
       { upsert: true, setDefaultsOnInsert: true }
     );
 
-    console.log(`wait`);
-
-    await sendOtpEmail(name, email, otp);
-
-    console.log(`OTP sent to ${email}`);
+    try {
+      await sendOtpEmail(name, email, otp);
+    } catch (err) {
+      console.error("SEND OTP EMAIL FAILED:");
+      console.error(err);
+      throw err;
+    }
 
     res.status(200).json({ message: "OTP sent to email" });
   } catch (err) {
