@@ -13,6 +13,9 @@ const sendOtpEmail = async (name, email, otp) => {
     },
   });
 
+  await transporter.verify();
+  console.log("SMTP verified");
+
   await transporter.sendMail({
     from: `"Crowd-Shield" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -31,6 +34,7 @@ If you didn’t create an account, you can safely ignore this email.
 
 Team Crowd-Shield`,
   });
+  console.log("Mail sent");
 };
 
 module.exports = sendOtpEmail;
