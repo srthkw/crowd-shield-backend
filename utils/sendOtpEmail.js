@@ -1,9 +1,12 @@
 const nodemailer = require("nodemailer");
 
 const sendOtpEmail = async (name, email, otp) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("Email service is not configured. Set EMAIL_USER and EMAIL_PASS.");
+  if (!process.env.BREVO_USER || !process.env.BREVO_PASS) {
+    throw new Error("Brevo credentials missing");
   }
+
+  console.log("BREVO_USER =", process.env.BREVO_USER);
+  console.log("BREVO_PASS exists =", !!process.env.BREVO_PASS);
 
   const transporter = nodemailer.createTransport({
     host: "smtp-relay.brevo.com",
