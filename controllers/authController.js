@@ -13,7 +13,9 @@ exports.signupInit = async (req, res) => {
   try {
     const { name, phone, password } = req.body;
     const email = normalizeEmail(req.body.email);
+    console.log(`wait`);
     console.log("Signup init data:", req.body);
+    console.log(`done`);
 
     if (!name?.trim() || !email || !phone?.trim() || !password) {
       return res.status(400).json({ message: "All fields required" });
