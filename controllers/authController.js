@@ -13,9 +13,7 @@ exports.signupInit = async (req, res) => {
   try {
     const { name, phone, password } = req.body;
     const email = normalizeEmail(req.body.email);
-    console.log(`wait`);
     console.log("Signup init data:", req.body);
-    console.log(`done`);
 
     if (!name?.trim() || !email || !phone?.trim() || !password) {
       return res.status(400).json({ message: "All fields required" });
@@ -43,7 +41,11 @@ exports.signupInit = async (req, res) => {
       { upsert: true, setDefaultsOnInsert: true }
     );
 
+    console.log(`wait`);
+
     await sendOtpEmail(name, email, otp);
+
+    console.log(`OTP sent to ${email}`);
 
     res.status(200).json({ message: "OTP sent to email" });
   } catch (err) {
