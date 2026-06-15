@@ -174,10 +174,6 @@ exports.cleanupEventSession = async (req, res) => {
 
     await cleanupAttendeeEventSession(req.io, req.user.id, eventId);
     res.json({ message: "Event session cleaned up successfully" });
-    console.log({
-      eventId,
-      eventIdType: typeof eventId,
-    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

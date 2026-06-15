@@ -6,7 +6,8 @@ const eventSchema = new mongoose.Schema(
     location: { type: String, required: true },
     date: { type: String, required: true },
     description: { type: String },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    isVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

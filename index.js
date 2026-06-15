@@ -13,6 +13,7 @@ const announcementRoutes = require("./routes/announcementRoutes");
 const lostFoundRoutes = require("./routes/lostFoundRoutes");
 const orgReqsRoutes = require("./routes/orgReqsRoutes");
 const emergencyRoutes = require("./routes/emergencyRoutes");
+const stayServiceRoutes = require("./routes/stayServiceRoutes");
 const { initSocket, getIO } = require("./socket");
 
 const app = express();
@@ -45,6 +46,8 @@ app.use("/events", eventRoutes);
 app.use("/org-reqs", orgReqsRoutes);
 
 app.use("/auth", authRoutes);
+
+app.use("/stay-services", stayServiceRoutes);
 
 
 app.get("/", (req, res) => {
