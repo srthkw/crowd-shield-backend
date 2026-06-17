@@ -41,6 +41,7 @@ const stayServiceSchema = new mongoose.Schema(
         description: {
             type: String,
             trim: true,
+            default: null,
         },
 
         createdBy: {
